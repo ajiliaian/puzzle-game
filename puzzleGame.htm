@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Puzzle</title>
+        <style>
+            #game{
+                position: relative;
+                width: 800px ;
+                height: 600px;
+                box-shadow: 0 0 5px #333;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="game"></div>
+        <script src="https://code.jquery.com/jquery-4.0.0.min.js" integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/ui/1.14.2/jquery-ui.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+
+
+        <script>
+           $(()=>{
+                let finished = false;
+                let count = 0 
+                const game = $('#game')
+                for (let i = 0; i < 6; i++) {
+                    for (let j = 0; j < 8; j++) {
+                        game.append(`<div id="p${i}${j}" data-row="${i}" data-col="${j}"></div>`);
+                        $(`#p${i}${j}`)
+                            .css({
+                                position : 'absolute',
+                                width :'100px',
+                                height:'100px',
+                                boxShadow : '0 0 5px #333',
+                                left:rnd(800,$('body').width()-120 )+'px',
+                                top:rnd(0,$('body').height()-120)+'px',
+                                transform: `rotate(${rnd(-45, 45)}deg)`,
+                                background:`url('img/puzzle.jpeg') ${-100 * j}px ${-100 * i}px`
+                            })
+                            .draggable({
+                                stack: "#game div", //bir parca basqasinin altina kecmesin deye istifade olunur
+                                cursor: "move", 
+                                cursorAt: { top: 50, left: 50 },
+                                start: function() { $(this).css({transform: `rotate(0)`})},
+                                drag: function(){},
+                                snap:true,
+                               stop: function () {
+                                    const pos = $(this).position();
+
+                                    // ən yaxın 100px-lik şəbəkəyə yerləşdir
+                                    const snappedLeft = Math.round(pos.left / 100) * 100;
+                                    const snappedTop  = Math.round(pos.top  / 100) * 100;
+
+                                    $(this).css({ left: snappedLeft + "px", top: snappedTop + "px" });
+
+                                    const row = Number($(this).data("row"));
+                                    const col = Number($(this).data("col"));
+
+                                    // yuvarladığımız dəyərləri müqayisə edirik, yenidən position() oxumuruq
+                                    const isCorrect = snappedLeft === col * 100 && snappedTop === row * 100;
+
+                                    const wasSolved = $(this).data("solved") === true;
+
+                                    if (isCorrect && !wasSolved) count++;
+                                    if (!isCorrect && wasSolved) count--;
+
+                                    $(this).data("solved", isCorrect);
+
+                                    if (count === 48 && !finished) {
+                                        finished = true;
+                                        game_over();
+}
+                                }
+                        })
+                    }                    
+                }
+                function rnd(min, max) {
+                    return Math.floor(Math.random() * (max-min + 1) + min);
+                    }
+
+               function game_over() {
+                game.after("<h2>Puzzle tamamlandı!</h2>");                
+                confetti({
+                    particleCount: 150,
+                    spread: 100,
+                    origin: { y: 0.6 }
+                });
+                }
+
+                    
+           }) 
+        </script>
+
+    </body>
+</html>
